@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/signup_owner", status_code=status.HTTP_201_CREATED)
 async def signup_owner(
         username: str = Form(...),
         email: str = Form(...),
