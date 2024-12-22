@@ -2,11 +2,13 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from Database.async_tables import get_grounds_table, get_ground_facilities_table, get_ground_equipments_table, \
-    get_ground_images_table, get_pitches_table, get_bookings_table
+    get_ground_images_table, get_pitches_table, get_bookings_table, get_ground_owners_table, get_user_reviews_table
 
 
 async def delete_ground(ground_id: int, db: AsyncSession):
     try:
+        await delete_ground_owners(ground_id, db)
+        await delete_ground_reviews(ground_id=ground_id, db=db)
         await delete_ground_bookings(ground_id, db)
         await delete_facilities(ground_id, db)
         await delete_equipments(ground_id, db)
@@ -14,7 +16,7 @@ async def delete_ground(ground_id: int, db: AsyncSession):
         await delete_ground_images(ground_id, db)
 
         grounds_table = await get_grounds_table()
-        query = await grounds_table.delete().where(grounds_table.c.id == ground_id)
+        query = grounds_table.delete().where(grounds_table.c.id == ground_id)
         await db.execute(query)
         await db.commit()
 
@@ -72,6 +74,29 @@ async def delete_ground_bookings(ground_id: int, db: AsyncSession):
         bookings_table = await get_bookings_table()
         # Delete existing pitches
         delete_query = bookings_table.delete().where(bookings_table.c.ground_id == ground_id)
+        await db.execute(delete_query)
+        await db.commit()
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def delete_ground_owners(ground_id: int, db: AsyncSession):
+    try:
+        ground_owners = await get_ground_owners_table()
+        # Delete existing pitches
+        delete_query = ground_owners.delete().where(ground_owners.c.ground_id == ground_id)
+        await db.execute(delete_query)
+        await db.commit()
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def delete_ground_reviews(ground_id: int, db: AsyncSession):
+    try:
+        reviews = await get_user_reviews_table()
+        # Delete existing pitches
+        delete_query = reviews.delete().where(reviews.c.ground_id == ground_id)
         await db.execute(delete_query)
         await db.commit()
 
