@@ -16,6 +16,7 @@ class PitchResponseModel(BaseModel):
     description: str
     length: str
     width: str
+    game_type: str
     price_per_60mins: str
     price_per_90mins: str
     created_at: datetime

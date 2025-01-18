@@ -10,6 +10,6 @@ router = APIRouter(
 )
 
 
-@router.post('/{id}')
+@router.delete('/{id}')
 async def delete_ground_router(id: int, db: AsyncSession = Depends(get_db)):
     return await delete_ground(id, db)

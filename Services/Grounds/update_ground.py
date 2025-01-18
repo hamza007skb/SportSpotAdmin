@@ -1,4 +1,5 @@
 import base64
+import logging
 from typing import List
 
 from fastapi import HTTPException
@@ -8,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from Database.async_tables import get_grounds_table, get_ground_facilities_table, get_ground_equipments_table, \
     get_ground_images_table, get_pitches_table
 from Services.Grounds.add_grounds import add_pitches, add_ground_images, add_ground_facilities, add_ground_equipments
-from Services.Grounds.models import GroundUpdate, Pitch
+from Services.Grounds.models import GroundUpdate, Pitch, PitchUpdate
 
 
 async def update_ground(ground_id: int, ground_data: GroundUpdate, db: AsyncSession):
@@ -29,6 +30,7 @@ async def update_ground(ground_id: int, ground_data: GroundUpdate, db: AsyncSess
 
 
 async def update_facilities(ground_id: int, facilities_data: List[str], db: AsyncSession):
+    print(facilities_data)
     try:
         ground_facilities_table = await get_ground_facilities_table()
         delete_query = ground_facilities_table.delete().where(ground_facilities_table.c.ground_id == ground_id)
@@ -57,6 +59,7 @@ async def update_equipments(ground_id: int, equipments_data: List[str], db: Asyn
 
 
 async def update_ground_images(ground_id: int, images_data: List[str], db: AsyncSession):
+
     try:
         ground_images_table = await get_ground_images_table()
         # Delete existing images
@@ -71,16 +74,21 @@ async def update_ground_images(ground_id: int, images_data: List[str], db: Async
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def update_pitches(ground_id: int, pitches_data: dict, db: AsyncSession):
+async def update_pitches(ground_id: int, pitches_data: List[dict], db: AsyncSession):
+    # logger = logging.getLogger(__name__)
+    # logger.error(pitches_data)
     try:
         pitches_table = await get_pitches_table()
         # Delete existing pitches
         delete_query = pitches_table.delete().where(pitches_table.c.ground_id == ground_id)
         await db.execute(delete_query)
-
         # Insert new pitches
+        # logger.error(len(pitches_data))
+
         for pitch in pitches_data:
-            pitch = Pitch(**pitch)
-            await add_pitches(pitch_response=pitch, ground_id=ground_id, db=db)
+            pitch1 = PitchUpdate(**pitch)
+            # logger.error(pitch1)
+            await add_pitches(pitch_response=pitch1, ground_id=ground_id, db=db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

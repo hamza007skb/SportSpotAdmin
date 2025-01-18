@@ -50,8 +50,8 @@ async def get_all_owners(db: AsyncSession):
             compressed_image = None
             if owner.owner_image:
                 # Compress the image data before encoding
-                compressed_image_data = compress_image(owner.owner_image)
-                compressed_image = base64.b64encode(compressed_image_data).decode('utf-8')
+                # compressed_image_data = compress_image(owner.owner_image)
+                compressed_image = base64.b64encode(owner.owner_image).decode("utf-8")
 
             owner_list.append({
                 "email": owner.owner_email,

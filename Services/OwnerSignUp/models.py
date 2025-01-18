@@ -6,5 +6,5 @@ class OwnerSignUpModel(BaseModel):
     email: str
     password: str
     phone_no: str = '123456789'
-    verified_by: str = 'hamza@gmail.com'
+    verified_by: str = 'sameer@gmail.com'
 

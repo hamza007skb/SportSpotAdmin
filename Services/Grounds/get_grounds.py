@@ -1,4 +1,5 @@
 import base64
+import logging
 from typing import List
 
 from PIL import Image
@@ -109,3 +110,61 @@ async def get_ground_images(id: int, db: AsyncSession):
     if not images_base64:
         raise HTTPException(status_code=404, detail="No images found for the specified ground ID")
     return JSONResponse(content={"images": images_base64})
+
+
+async def get_all_grounds_with_images(db: AsyncSession) -> List[GroundResponseModel]:
+    # Fetch the grounds and one image per ground
+    grounds_table = await get_grounds_table()
+    ground_images_table = await get_ground_images_table()
+
+    # Subquery to get one image per ground
+    subquery = (
+        select(
+            ground_images_table.c.ground_id,
+            ground_images_table.c.image_data
+        )
+        .distinct(ground_images_table.c.ground_id)
+        .subquery()
+    )
+
+    # Join grounds with the subquery
+    query = (
+        select(
+            grounds_table,
+            subquery.c.image_data
+        )
+        .join(subquery, grounds_table.c.id == subquery.c.ground_id, isouter=True)
+    )
+
+    result = await db.execute(query)
+    rows = result.mappings().all()
+
+    grounds = []
+    for row in rows:
+        # Extract column values directly
+        ground_data = {
+            "id": row["id"],
+            "name": row["name"],
+            "email": row["email"],
+            "latitude": row["latitude"],
+            "longitude": row["longitude"],
+            "city": row["city"],
+            "address": row["address"],
+            "description": row["description"],
+            "stadiumtype": row["stadiumtype"],
+            "sportshours": row["sportshours"],
+            "rating": row.get("rating"),
+            "created_at": row["created_at"],
+        }
+
+        # Handle optional image data
+        image_data = row.get("image_data")
+        image_base64 = base64.b64encode(image_data).decode('utf-8') if image_data else None
+        ground_data['image'] = image_base64  # Add image to response
+
+        # Append the response model
+        grounds.append(GroundResponseModel(**ground_data))
+
+        # logging.error(grounds[0].image)
+
+    return grounds
